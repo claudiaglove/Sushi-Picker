@@ -38,7 +38,6 @@ export class SupabaseAuthRepository implements AuthRepository {
   async signUp(
     email: string,
     password: string,
-    firstName: string,
   ): Promise<{ needsEmailConfirmation: boolean }> {
     const { data, error } = await this.client.auth.signUp({
       email,
@@ -46,8 +45,6 @@ export class SupabaseAuthRepository implements AuthRepository {
       // Where the confirmation link sends people back to (must be an allowed redirect URL).
       options: {
         emailRedirectTo: window.location.origin,
-        // Saved in the user's auth metadata (no extra table needed).
-        data: { first_name: firstName },
       },
     })
     if (error) throw new Error(friendlyAuthMessage(error))

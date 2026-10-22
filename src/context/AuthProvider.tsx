@@ -31,7 +31,7 @@ export function AuthProvider({ auth, children }: Props) {
       status: user === undefined ? 'loading' : user ? 'signedIn' : 'signedOut',
       user: user ?? null,
       signIn: (email, password) => auth.signIn(email, password),
-      signUp: (email, password, firstName) => auth.signUp(email, password, firstName),
+      signUp: (email, password) => auth.signUp(email, password),
       signOut: () => auth.signOut(),
     }),
     [auth, user],

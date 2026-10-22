@@ -39,15 +39,8 @@ export interface AuthRepository {
   /** Subscribe to sign-in / sign-out. Returns an unsubscribe function. */
   onChange(listener: (user: AuthUser | null) => void): () => void
   signIn(email: string, password: string): Promise<void>
-  /**
-   * `firstName` is stored on the user's profile (auth metadata).
-   * `needsEmailConfirmation` is true when the user must click a link before signing in.
-   */
-  signUp(
-    email: string,
-    password: string,
-    firstName: string,
-  ): Promise<{ needsEmailConfirmation: boolean }>
+  /** `needsEmailConfirmation` is true when the user must click a link before signing in. */
+  signUp(email: string, password: string): Promise<{ needsEmailConfirmation: boolean }>
   signOut(): Promise<void>
 }
 

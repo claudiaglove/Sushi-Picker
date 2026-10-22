@@ -15,13 +15,11 @@ const MIN_PASSWORD = 6
 export function Login() {
   const { signIn, signUp } = useAuth()
   const [mode, setMode] = useState<Mode>('signIn')
-  const [firstName, setFirstName] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState<string | null>(null)
   const [notice, setNotice] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
-  const firstNameId = useId()
   const emailId = useId()
   const passwordId = useId()
   const errorId = useId()
@@ -29,12 +27,7 @@ export function Login() {
   const submit = async (e: SubmitEvent) => {
     e.preventDefault()
     setNotice(null)
-    const cleanFirstName = firstName.trim()
     const cleanEmail = email.trim()
-    if (mode === 'signUp' && cleanFirstName === '') {
-      setError('Please enter your first name.')
-      return
-    }
     if (!EMAIL_PATTERN.test(cleanEmail)) {
       setError('Please enter a valid email address.')
       return
@@ -49,11 +42,7 @@ export function Login() {
       if (mode === 'signIn') {
         await signIn(cleanEmail, password)
       } else {
-        const { needsEmailConfirmation } = await signUp(
-          cleanEmail,
-          password,
-          cleanFirstName,
-        )
+        const { needsEmailConfirmation } = await signUp(cleanEmail, password)
         if (needsEmailConfirmation) {
           setMode('signIn')
           setPassword('')
@@ -117,26 +106,6 @@ export function Login() {
         }}
         className="flex flex-col gap-4"
       >
-        {mode === 'signUp' && (
-          <div className="flex flex-col gap-1">
-            <label htmlFor={firstNameId} className="font-semibold">
-              First name
-            </label>
-            <input
-              id={firstNameId}
-              type="text"
-              className={`${inputClass} aria-[invalid=true]:border-bad`}
-              autoComplete="given-name"
-              maxLength={50}
-              value={firstName}
-              aria-invalid={error ? true : undefined}
-              aria-describedby={error ? errorId : undefined}
-              onChange={(e) => {
-                setFirstName(e.target.value)
-              }}
-            />
-          </div>
-        )}
         <div className="flex flex-col gap-1">
           <label htmlFor={emailId} className="font-semibold">
             Email

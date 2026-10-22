@@ -9,7 +9,6 @@ export interface AuthContextValue {
   signUp: (
     email: string,
     password: string,
-    firstName: string,
   ) => Promise<{ needsEmailConfirmation: boolean }>
   signOut: () => Promise<void>
 }
