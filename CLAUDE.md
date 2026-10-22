@@ -1,4 +1,44 @@
-# Design tokens
+# CLAUDE.md
+
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+
+## Project
+
+The folder is named "Restaurant Journal" and the Figma design below is for a restaurant journal, but the code in `src/` is currently **Sushi Picker** (package name `sushi-picker`): a mobile-first React 19 + TypeScript (strict) + Vite + React Router + Tailwind v4 app. See `README.md` for the product description and Supabase setup details.
+
+## Commands
+
+```bash
+npm run dev            # Vite dev server, http://localhost:5173 (.claude/launch.json also has a --host "dev-lan" config)
+npm run build          # tsc -b && vite build -> dist/
+npm run typecheck      # tsc -b
+npm run lint           # ESLint (strictTypeChecked, jsx-a11y, react-hooks)
+npm run format:check   # Prettier (+ tailwind class sorting); `npm run format` to fix
+npm test               # vitest run (node env; only src/**/*.test.ts)
+npx vitest run src/lib/pick.test.ts          # single test file
+npx vitest run -t "name substring"           # single test by name
+```
+
+Tests cover only pure logic (`src/lib/`, `src/data/supabase/authErrors.ts`); there are no component tests.
+
+## Architecture
+
+**Repository pattern is the core constraint.** The UI never touches data sources directly:
+
+- `src/data/repositories.ts` defines the interfaces (`AuthRepository`, `SpotRepository`, `SavedPlacesRepository`, `SettingsRepository`, `ZipRepository`). All methods are async so backends are swappable.
+- `src/data/index.ts` `createRepositories()` is the single composition root. If `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` are set (in `.env.local`), it returns the `src/data/supabase/` implementations; otherwise the `src/data/mock/` implementations (JSON spots + `localStorage`, no login screen). Any new data capability needs an interface, both implementations, and wiring here.
+- `AuthProvider` / `DataProvider` (`src/context/`) call it once and expose results through hooks in `src/hooks/` (`useAuth`, `useSpots`, `useSavedPlaces`, `useSettings`). Components and pages use only those hooks.
+- ESLint enforces this: files under `components`, `pages`, `hooks`, `lib`, `context` cannot import `data/mock/*`, `zipCentroids.json`, or `spots.json`, nor use `localStorage`/`sessionStorage`. Fix violations by going through a repository, not by disabling the rule.
+
+**App flow** (`src/App.tsx`, `AuthGate`, `SignedInApp`): signed-out visitors see `Login` (Supabase mode only) -> `RequireSettings` redirects to `/welcome` (onboarding, saves a zip code) until settings exist -> `AppShell` routes: Pick (`/`), Result, MyPlaces, Browse, Settings.
+
+**Pure logic** lives in `src/lib/` (`distance.ts` haversine, `pick.ts` selection from quiz answers, `format.ts`); keep it free of React and data access so it stays unit-testable.
+
+**Supabase:** schema in `supabase/migrations/` (RLS: `spots` public read-only; `saved_places` and `user_settings` per-user via `auth.uid()`). `src/data/supabase/database.types.ts` is generated (lint-ignored); regenerate rather than hand-edit. Only the anon/publishable key belongs in the app, never `service_role`.
+
+## Design tokens
+
+Visual values are the source of truth for styling.
 
 Extracted from the Figma file "Restaurant Journal (Copy)" (file key `sVpieCKgZEjqzEcuvhFyCU`, canvas node `6:265`).
 Read from 7 screens: Homepage, Log in, Create account, Empty journal, Entry detail, Journal list, New entry form.
